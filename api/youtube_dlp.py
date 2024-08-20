@@ -1,30 +1,23 @@
-import json
-import os
-from yt_dlp import YoutubeDL
-from flask import Flask, request, send_file
+const { exec } = require('youtube-dl-exec');
 
-app = Flask(__name__)
+module.exports = async (req, res) => {
+  const link = req.query.links;
 
-@app.route('/api/youtube-dlp', methods=['GET'])
-def download_youtube():
-    link = request.args.get('links')
-    if not link:
-        return json.dumps({"error": "Link not provided"}), 400
-    
-    ydl_opts = {
-        'format': 'bestaudio/best',
-        'outtmpl': '/tmp/%(title)s.%(ext)s',
-        'postprocessors': [{
-            'key': 'FFmpegExtractAudio',
-            'preferredcodec': 'mp3',
-            'preferredquality': '192',
-        }],
-    }
-    
-    with YoutubeDL(ydl_opts) as ydl:
-        info_dict = ydl.extract_info(link, download=True)
-        filename = ydl.prepare_filename(info_dict).replace('.webm', '.mp3')
-        return send_file(filename, as_attachment=True)
+  if (!link) {
+    return res.status(400).json({ error: 'Link parameter is required' });
+  }
 
-if __name__ == '__main__':
-    app.run()
+  try {
+    const options = {
+      format: 'bestaudio',
+      output: '-'
+    };
+
+    const stream = exec(link, options);
+
+    res.setHeader('Content-Disposition', 'attachment; filename="audio.mp3"');
+    stream.stdout.pipe(res);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to download video' });
+  }
+};

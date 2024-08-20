@@ -1,0 +1,9 @@
+{
+  "builds": [
+    { "src": "api/*.py", "use": "@vercel/python" }
+  ],
+  "routes": [
+    { "src": "/api/youtube-sr", "dest": "/api/youtube_sr.py" },
+    { "src": "/api/youtube-dlp", "dest": "/api/youtube_dlp.py" }
+  ]
+}
